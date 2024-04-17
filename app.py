@@ -9,7 +9,9 @@ from ultralytics import YOLO
 
 # Flask app initialization
 app = Flask(__name__)
-
+@app.route("/")
+def home():
+    return "Hello"
 # Model loading (assuming the model file is in the same directory)
 # model_path = os.path.abspath('/Users/khan/PycharmProjects/mini_project/pythonProject/best.pt')
 # model = torch.load(model_path)
