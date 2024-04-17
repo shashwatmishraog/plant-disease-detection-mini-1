@@ -50,7 +50,7 @@ def predict():
 
         # Make prediction (disable gradient calculation for efficiency)
         with torch.no_grad():
-            yolo = YOLO('/Users/khan/PycharmProjects/mini_project/pythonProject/best.pt')
+            yolo = YOLO('best.pt')
             print("Hello")
             prediction = yolo.predict(normalized_tensor)
             #print(prediction)
