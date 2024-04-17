@@ -43,3 +43,4 @@ ultralytics
 urllib3
 Werkzeug
 zipp
+gunicorn
