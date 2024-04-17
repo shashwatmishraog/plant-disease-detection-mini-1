@@ -11,9 +11,9 @@ from ultralytics import YOLO
 app = Flask(__name__)
 
 # Model loading (assuming the model file is in the same directory)
-model_path = os.path.abspath('/Users/khan/PycharmProjects/mini_project/pythonProject/best.pt')
-model = torch.load(model_path)
-
+# model_path = os.path.abspath('/Users/khan/PycharmProjects/mini_project/pythonProject/best.pt')
+# model = torch.load(model_path)
+model = torch.load('best.pt')
 # Function to preprocess an image for prediction
 
 def preprocess_image(img):
