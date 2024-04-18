@@ -66,7 +66,7 @@ def predict():
             probs = prediction[0].probs.top1
             #print(probs)
 
-            highest_prob_name = name_dict[np.argmax(probs)]
+            highest_prob_name = name_dict[probs]
             print(f"Image likely belongs to class: {highest_prob_name}")
             #print("Bello")
         # Extract disease name
