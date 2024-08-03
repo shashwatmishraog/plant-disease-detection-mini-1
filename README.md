@@ -32,5 +32,5 @@ This repository contains a Machine Learning-powered Android application designed
 1. **Clone the repository:**
    ```sh
    git clone https://github.com/shashwatmishraog/plant-disease-detection-mini-1/
-   cd plant-disease-detection
-   git checkout android_app
+   cd plant-disease-detection-mini-1
+   For Appliction only :git checkout android_app
