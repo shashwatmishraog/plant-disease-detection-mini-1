@@ -1,0 +1,237 @@
+
+import android.content.Intent
+import android.graphics.Bitmap
+import android.os.Bundle
+import android.provider.MediaStore
+import androidx.appcompat.app.AppCompatActivity
+import com.example.plantdis2.databinding.ActivityMainBinding
+import okhttp3.Call
+import okhttp3.MediaType
+import okhttp3.OkHttpClient
+import okhttp3.RequestBody
+import okhttp3.Request
+import okhttp3.Response
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+
+class MainActivity : AppCompatActivity() {
+
+    private val API_URL = "YOUR_API_URL" // Replace with your actual API URL
+    private val JPEG_IMAGE = yourString?.toMediaTypeOrNull()
+    val mimeType = "drawable/d1b2206b-39e5-4444-9ebe-223d0d78880e___RS_GLSp-4407_JPG.rf.4f5b75b20d526f13714f80bdab6684da.jpg" // Replace with your actual MIME type
+    val requestBody = RequestBody.create(mimeType.toMediaTypeOrNull(), imageBytes)
+
+
+    private val client = OkHttpClient()
+    private val CAMERA_REQUEST_CODE = 100
+    private val GALLERY_REQUEST_CODE = 200
+
+    private lateinit var binding: ActivityMainBinding
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        binding.cameraButton.setOnClickListener {
+            val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            startActivityForResult(cameraIntent, CAMERA_REQUEST_CODE)
+        }
+
+        binding.galleryButton.setOnClickListener {
+            val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+            startActivityForResult(galleryIntent, GALLERY_REQUEST_CODE)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == CAMERA_REQUEST_CODE && resultCode == RESULT_OK) {
+            val capturedImage = data?.extras?.get("data") as Bitmap
+            sendImageForAnalysis(capturedImage)
+        } else if (requestCode == GALLERY_REQUEST_CODE && resultCode == RESULT_OK) {
+            val selectedImageUri = data?.data
+            try {
+                val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, selectedImageUri)
+                sendImageForAnalysis(bitmap)
+            } catch (e: IOException) {
+                e.printStackTrace()
+                // Handle error loading image from gallery
+            }
+        }
+    }
+
+    private fun sendImageForAnalysis(image: Bitmap) {
+        val stream = ByteArrayOutputStream()
+        image.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+        val imageBytes = stream.toByteArray()
+
+        val requestBody = RequestBody.create(JPEG_IMAGE, imageBytes)
+        val request = Request.Builder()
+            .url(API_URL)
+            .post(requestBody)
+            .build()
+
+        client.newCall(request).enqueue(object : okhttp3.Callback {
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    val diseaseName = response.body!!.string()
+                    runOnUiThread { binding.resultText.text = "Detected Disease: $diseaseName" }
+                } else {
+                    // Handle error sending request or receiving response
+                    runOnUiThread { binding.resultText.text = "Error: Failed to analyze image" }
+                }
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+                // Handle failure connecting to the API
+                runOnUiThread { binding.resultText.text = "Error: Failed to connect to server" }
+            }
+        })
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@drawable/background">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/camera_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Camera"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.5" />
+
+            <Button
+                android:id="@+id/gallery_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gallery"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/camera_button"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.5" />
+
+            <TextView
+                android:id="@+id/diseaseTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="@id/camera_button"
+                android:layout_marginTop="70dp"
+                android:text="Disease Prediction:"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/diseaseNameTextView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="50dp"
+                android:layout_marginEnd="16dp"
+                android:text="Disease Name:"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toBottomOf="@+id/diseaseTextView" />
+
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
+
+
+
+
+
+//package com.example.plantdis2
+//
+//import android.content.Intent
+//import android.graphics.Bitmap  // Import for Bitmap class
+//import android.os.Bundle
+//import android.provider.MediaStore
+//import androidx.appcompat.app.AppCompatActivity
+//import com.example.plantdis2.databinding.ActivityMainBinding
+//
+//class MainActivity : AppCompatActivity()
+//{
+//
+//    private val CAMERA_REQUEST_CODE = 100
+//    private val GALLERY_REQUEST_CODE = 200
+//
+//    private lateinit var binding: ActivityMainBinding // Using lateinit for binding
+//
+//    override fun onCreate(savedInstanceState: Bundle?)
+//    {
+//        super.onCreate(savedInstanceState)
+//        binding = ActivityMainBinding.inflate(layoutInflater) // Inflating binding
+//        setContentView(binding.root) // Setting root view
+//
+//        binding.cameraButton.setOnClickListener {
+//            // Using binding for camera button access
+//            val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+//            startActivityForResult(cameraIntent, CAMERA_REQUEST_CODE)
+//        }
+//
+//        binding.galleryButton.setOnClickListener {
+//            // Using binding for gallery button access
+//            val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+//            startActivityForResult(galleryIntent, GALLERY_REQUEST_CODE)
+//        }
+//    }
+//
+//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//        super.onActivityResult(requestCode, resultCode, data)
+//
+//        if (requestCode == CAMERA_REQUEST_CODE && resultCode == RESULT_OK) {
+//            val capturedImage = data?.extras?.get("data") as Bitmap
+//            // Replace this with your image processing and disease detection logic using the capturedImage
+//        } else if (requestCode == GALLERY_REQUEST_CODE && resultCode == RESULT_OK) {
+//            val selectedImageUri = data?.data
+//            val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, selectedImageUri)
+//            // Replace this with your image processing and disease detection logic using the bitmap
+//        }
+//    }
+//}
+//
+//
+//
+//
+//
