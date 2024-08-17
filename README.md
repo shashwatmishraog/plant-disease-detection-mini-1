@@ -130,7 +130,6 @@ The app includes error handling for network errors and parsing issues, providing
 
 The model and API are deployed on Render. To redeploy or update:
 
-- Modify the `Dockerfile` and `deploy.sh` in the `deployment/render/` directory.
 - Push changes to the repository to trigger deployment on Render.
 ## Licence
 
